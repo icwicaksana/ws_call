@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Websocket Call</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            padding: 16px 32px;
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo-subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Card */
+        .main-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease 0.2s both;
+            backdrop-filter: blur(20px);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* User Profile Section */
+        .profile-section {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .profile-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar {
+            width: 70px;
+            height: 70px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 3px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .profile-input {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            max-width: 280px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .profile-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .profile-input:focus {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge.disconnected {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .status-badge.connected {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-badge.calling {
+            background: var(--warning-light);
+            color: var(--warning);
+            animation: pulse-status 1.5s ease-in-out infinite;
+        }
+
+        .status-badge.in-call {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        @keyframes pulse-status {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-badge.calling .status-dot {
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Content Area */
+        .content {
+            padding: 30px;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Audio Visualizer */
+        .audio-visualizer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: var(--radius-lg);
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.4s ease;
+        }
+
+        .audio-visualizer.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .bar {
+            width: 6px;
+            background: linear-gradient(to top, var(--primary), var(--primary-light));
+            border-radius: 3px;
+            transition: height 0.1s ease;
+        }
+
+        /* Control Buttons */
+        .controls-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+            color: var(--text-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn i {
+            font-size: 18px;
+        }
+
+        /* Call Controls */
+        .call-controls {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .call-controls.visible {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Audio Section */
+        .audio-section {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .audio-section.collapsed {
+            padding: 0 25px;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        .audio-section.collapsed .audio-grid {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .audio-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .audio-toggle-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-toggle-btn {
+            background: var(--primary-light);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .audio-toggle-btn:hover {
+            background: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .audio-section.collapsed .audio-toggle-btn {
+            transform: rotate(180deg);
+        }
+
+        .audio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .audio-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .audio-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .audio-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .audio-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .audio-icon.local {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .audio-icon.remote {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .audio-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .audio-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        audio {
+            width: 100%;
+            height: 40px;
+            border-radius: var(--radius-sm);
+        }
+
+        audio::-webkit-media-controls-panel {
+            background: #f1f5f9;
+        }
+
+        /* Log Section */
+        .log-section {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .log-header:hover {
+            background: #f1f5f9;
+        }
+
+        .log-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .log-toggle {
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        .log-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .log-content {
+            max-height: 250px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+        }
+
+        .log-content.collapsed {
+            max-height: 0;
+        }
+
+        .log-entries {
+            padding: 15px 20px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: var(--text-primary);
+        }
+
+        .log-entry.success .log-message { color: var(--success); }
+        .log-entry.error .log-message { color: var(--danger); }
+        .log-entry.warning .log-message { color: var(--warning); }
+        .log-entry.info .log-message { color: var(--info); }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-xl);
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideInRight 0.4s ease;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.hiding {
+            animation: slideOutRight 0.4s ease forwards;
+        }
+
+        @keyframes slideOutRight {
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+        .toast.info { border-left-color: var(--info); }
+
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .toast.success .toast-icon { background: var(--success-light); color: var(--success); }
+        .toast.error .toast-icon { background: var(--danger-light); color: var(--danger); }
+        .toast.warning .toast-icon { background: var(--warning-light); color: var(--warning); }
+        .toast.info .toast-icon { background: var(--info-light); color: var(--info); }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toast-close {
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .toast-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .logo-text {
+                font-size: 22px;
+            }
+
+            .profile-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-input {
+                max-width: 100%;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Ring Animation for Incoming Call */
+        .ringing {
+            animation: ring 1s ease-in-out infinite;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            10% { transform: rotate(15deg); }
+            20% { transform: rotate(-15deg); }
+            30% { transform: rotate(10deg); }
+            40% { transform: rotate(-10deg); }
+            50% { transform: rotate(5deg); }
+            60% { transform: rotate(-5deg); }
+            70% { transform: rotate(2deg); }
+            80% { transform: rotate(-2deg); }
+            90% { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <div>
+                    <div class="logo-text">Websocket Call</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="main-card">
+            <!-- Profile Section -->
+            <div class="profile-section">
+                <div class="profile-content">
+                    <div class="avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-label">Nama Pengguna</div>
+                        <input type="text" id="username" class="profile-input" placeholder="Masukkan nama Anda" value="">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="status-badge disconnected" id="statusBadge">
+                        <span class="status-dot"></span>
+                        <span id="statusText">Tidak Terhubung</span>
+                    </div>
+                </div>
+
+                <!-- Audio Visualizer -->
+                <div class="audio-visualizer" id="visualizer">
+                    <!-- Bars will be generated by JS -->
+                </div>
+
+                <!-- Connection Controls -->
+                <div class="controls-section">
+                    <div class="section-title">Koneksi Server</div>
+                    <div class="button-group">
+                        <button id="connectBtn" class="btn btn-primary">
+                            <i class="fas fa-plug"></i>
+                            <span>Hubungkan</span>
+                        </button>
+                        <button id="disconnectBtn" class="btn btn-secondary hidden">
+                            <i class="fas fa-unlink"></i>
+                            <span>Putuskan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Call Controls -->
+                <div class="controls-section call-controls" id="callControls">
+                    <div class="section-title">Kontrol Panggilan</div>
+                    <div class="button-group">
+                        <button id="startCallBtn" class="btn btn-success">
+                            <i class="fas fa-phone"></i>
+                            <span>Mulai Panggilan</span>
+                        </button>
+                        <button id="answerCallBtn" class="btn btn-success hidden ringing">
+                            <i class="fas fa-phone-volume"></i>
+                            <span>Jawab Panggilan</span>
+                        </button>
+                        <button id="endCallBtn" class="btn btn-danger hidden">
+                            <i class="fas fa-phone-slash"></i>
+                            <span>Akhiri Panggilan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audio Section -->
+                <div class="audio-section collapsed" id="audioSection">
+                    <div class="audio-toggle" id="audioToggle">
+                        <div class="audio-toggle-left">
+                            <button class="audio-toggle-btn" id="audioToggleBtn">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="section-title" style="margin-bottom: 0;">Audio Stream</div>
+                        </div>
+                    </div>
+                    <div class="audio-grid">
+                        <div class="audio-card">
+                            <div class="audio-card-header">
+                                <div class="audio-icon local">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <div>
+                                    <div class="audio-title">Audio Lokal</div>
+                                    <div class="audio-subtitle">Suara Anda</div>
+                                </div>
+                            </div>
+                            <audio id="localAudio" controls muted></audio>
+                        </div>
+                        <div class="audio-card">
+                            <div class="audio-card-header">
+                                <div class="audio-icon remote">
+                                    <i class="fas fa-headphones"></i>
+                                </div>
+                                <div>
+                                    <div class="audio-title">Audio Remote</div>
+                                    <div class="audio-subtitle">Suara Lawan Bicara</div>
+                                </div>
+                            </div>
+                            <audio id="remoteAudio" controls autoplay></audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Section -->
+                <div class="log-section">
+                    <div class="log-header" id="logHeader">
+                        <div class="log-title">
+                            <i class="fas fa-terminal"></i>
+                            <span>Log Aktivitas</span>
+                        </div>
+                        <i class="fas fa-chevron-down log-toggle" id="logToggle"></i>
+                    </div>
+                    <div class="log-content" id="logContent">
+                        <div class="log-entries" id="logEntries">
+                            <!-- Log entries will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
