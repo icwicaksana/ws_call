@@ -5,6 +5,7 @@ let remoteStream = null;
 let peerConnection = null;
 let isConnected = false;
 let isInCall = false;
+let isEndingCall = false;  // Flag to prevent infinite loop
 let iceCandidateQueue = [];
 let lastOffer = null;
 let visualizerInterval = null;
@@ -293,12 +294,41 @@ function createPeerConnection() {
     };
 }
 
+// Check if WebRTC is available (requires HTTPS or localhost)
+function checkWebRTCAvailable() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        if (!isHttps && !isLocalhost) {
+            return {
+                available: false,
+                message: 'WebRTC memerlukan koneksi HTTPS. Silakan akses aplikasi menggunakan https://'
+            };
+        }
+        return {
+            available: false,
+            message: 'Browser tidak mendukung WebRTC atau izin media ditolak'
+        };
+    }
+    return { available: true, message: '' };
+}
+
 // Fungsi untuk memulai panggilan
 async function startCall() {
     if (isInCall) {
         showToast('Peringatan', 'Anda sedang dalam panggilan', 'warning');
         return;
     }
+    
+    // Check WebRTC availability
+    const webrtcCheck = checkWebRTCAvailable();
+    if (!webrtcCheck.available) {
+        addLog(`Error: ${webrtcCheck.message}`, 'error');
+        showToast('WebRTC Tidak Tersedia', webrtcCheck.message, 'error');
+        return;
+    }
+    
     isInCall = true;
 
     try {
@@ -353,6 +383,15 @@ async function answerCall() {
         showToast('Error', 'Tidak ada panggilan untuk dijawab', 'error');
         return;
     }
+    
+    // Check WebRTC availability
+    const webrtcCheck = checkWebRTCAvailable();
+    if (!webrtcCheck.available) {
+        addLog(`Error: ${webrtcCheck.message}`, 'error');
+        showToast('WebRTC Tidak Tersedia', webrtcCheck.message, 'error');
+        return;
+    }
+    
     isInCall = true;
 
     try {
@@ -414,6 +453,12 @@ async function handleIceCandidate(data) {
 
 // End call
 function endCall() {
+    // Prevent re-entry and infinite loop
+    if (isEndingCall) {
+        return;
+    }
+    isEndingCall = true;
+    
     addLog('Mengakhiri panggilan...');
     stopVisualizer();
     
@@ -446,10 +491,12 @@ function endCall() {
         updateStatus('Tidak Terhubung', 'disconnected');
     }
     
+    const wasInCall = isInCall;
     isInCall = false;
     lastOffer = null;
     
-    if (socket && socket.readyState === WebSocket.OPEN) {
+    // Only send call-ended if we were actually in a call (not already ending)
+    if (wasInCall && socket && socket.readyState === WebSocket.OPEN) {
         sendSignalingMessage({
             type: 'call-ended',
             from: usernameInput.value
@@ -457,10 +504,19 @@ function endCall() {
     }
     
     showToast('Panggilan Berakhir', 'Panggilan telah diakhiri', 'info');
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+        isEndingCall = false;
+    }, 500);
 }
 
 // Handle call ended from peer
 function handleCallEnded() {
+    // Don't process if we're already ending the call
+    if (isEndingCall) {
+        return;
+    }
     addLog('Panggilan diakhiri oleh peer', 'warning');
     showToast('Panggilan Berakhir', 'Lawan bicara mengakhiri panggilan', 'warning');
     endCall();
